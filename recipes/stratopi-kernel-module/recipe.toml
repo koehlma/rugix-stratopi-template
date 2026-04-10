@@ -1,0 +1,4 @@
+description = "build and install the Strato Pi kernel module and device tree overlay"
+
+[parameters]
+repo = { default = "https://github.com/sfera-labs/strato-pi-kernel-module.git" }

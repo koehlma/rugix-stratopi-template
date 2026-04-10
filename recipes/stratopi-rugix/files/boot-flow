@@ -1,0 +1,138 @@
+#!/bin/bash
+#
+# Custom Rugix boot flow controller for the Strato Pi A/B SD card matrix.
+#
+# Implements the rugix-ctrl `boot-flow.type = "custom"` protocol by talking
+# to /sys/class/stratopimax. Each Rugix boot group corresponds to one of the
+# two physical SD card slots; the Strato Pi MCU decides which one is routed
+# to the CM via its switching matrix.
+#
+# The controller uses `watchdog/sd_switch_config` itself as the persistent
+# indicator of whether the current routing is tentative:
+#
+#     watchdog/sd_switch_config == 1  ->  tentative; watchdog will roll back
+#     watchdog/sd_switch_config != 1  ->  committed; either no failover (0)
+#                                         or delayed failover (N > 1)
+
+set -euo pipefail
+
+SYSFS_BASE="/sys/class/stratopimax"
+
+SD_MAIN_ROUTING="$SYSFS_BASE/sd/sd_main_routing"
+SD_MAIN_ROUTING_CONFIG="$SYSFS_BASE/sd/sd_main_routing_config"
+WATCHDOG_SD_SWITCH="$SYSFS_BASE/watchdog/sd_switch_config"
+POWER_DOWN_ENABLED="$SYSFS_BASE/power/down_enabled"
+
+# Value to write to watchdog/sd_switch_config on commit. 0 disables watchdog-
+# driven failover entirely after the update window. Set this to a value > 1
+# to keep delayed failover armed in production (swap after N consecutive
+# watchdog resets with no heartbeat in between).
+COMMITTED_WATCHDOG_SD_SWITCH=0
+
+cmd="${1:-}"
+group="${2:-}"
+
+routing_to_group() {
+    case "$(tr -d '[:space:]' <<<"$1" | tr 'a-z' 'A-Z')" in
+        A) echo a ;;
+        B) echo b ;;
+        *)
+            echo "unexpected sd_main_routing value: '$1'" >&2
+            return 1
+            ;;
+    esac
+}
+
+group_to_routing() {
+    case "$1" in
+        a) echo A ;;
+        b) echo B ;;
+        *)
+            echo "unknown boot group: '$1'" >&2
+            return 1
+            ;;
+    esac
+}
+
+other_group() {
+    case "$1" in
+        a) echo b ;;
+        b) echo a ;;
+        *) return 1 ;;
+    esac
+}
+
+current_routing_group() {
+    routing_to_group "$(< "$SD_MAIN_ROUTING")"
+}
+
+is_tentative() {
+    [[ "$(tr -d '[:space:]' < "$WATCHDOG_SD_SWITCH")" = 1 ]]
+}
+
+case "$cmd" in
+    get_active)
+        printf '{"group":"%s"}\n' "$(current_routing_group)"
+        ;;
+
+    get_default)
+        active=$(current_routing_group)
+        if is_tentative; then
+            printf '{"group":"%s"}\n' "$(other_group "$active")"
+        else
+            printf '{"group":"%s"}\n' "$active"
+        fi
+        ;;
+
+    set_try_next)
+        [[ -n $group ]] || { echo "set_try_next requires a group" >&2; exit 1; }
+        # Arm watchdog rollback, then point the matrix at the target. The
+        # MCU will honour sd_main_routing_config on the next power cycle.
+        printf '1\n' > "$WATCHDOG_SD_SWITCH"
+        group_to_routing "$group" > "$SD_MAIN_ROUTING_CONFIG"
+        printf '{}\n'
+        ;;
+
+    commit)
+        [[ -n $group ]] || { echo "commit requires a group" >&2; exit 1; }
+        # Make the configured routing match the active group, in case we got
+        # here via a watchdog rollback rather than a successful try-next.
+        group_to_routing "$group" > "$SD_MAIN_ROUTING_CONFIG"
+        printf '%s\n' "$COMMITTED_WATCHDOG_SD_SWITCH" > "$WATCHDOG_SD_SWITCH"
+        printf '{}\n'
+        ;;
+
+    pre_install)
+        # During the spare-image write, prevent watchdog-driven SD swaps so
+        # a hang cannot leave us booting from a half-written card. Snapshot
+        # the previous value so post_install can restore production state
+        # if no set_try_next follows.
+        printf '0\n' > "$WATCHDOG_SD_SWITCH"
+        printf '{}\n'
+        ;;
+
+    post_install)
+        printf '{}\n'
+        ;;
+
+    reboot)
+        # Trigger an MCU-driven power cycle of the CM. The MCU waits
+        # power/down_delay_config seconds, powers the CM off, applies
+        # sd_main_routing_config to the matrix, then powers the CM back on.
+        # The script returns immediately; the actual reboot happens after
+        # the configured delay.
+        sync
+        printf '1\n' > "$POWER_DOWN_ENABLED"
+        shutdown now
+        printf '{}\n'
+        ;;
+
+    mark_good|mark_bad)
+        printf '{}\n'
+        ;;
+
+    *)
+        # Unknown / unimplemented operation. Per the custom boot flow contract,
+        # exit cleanly with no output so Rugix treats it as "not implemented".
+        ;;
+esac

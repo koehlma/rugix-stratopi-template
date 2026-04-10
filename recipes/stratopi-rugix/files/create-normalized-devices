@@ -1,0 +1,58 @@
+#!/bin/bash
+#
+# Create slot-named symlinks for the two SD cards of a Strato Pi.
+
+set -euo pipefail
+
+SYSFS_PATH="/sys/class/stratopimax"
+SYMLINK_DIR="/dev/strato"
+
+log() { printf '[strato-normalize] %s\n' "$*" >&2; }
+die() { log "ERROR: $*"; exit 1; }
+
+detect_main_mmcblk() {
+    rugix-ctrl utils find-block-device / 2>/dev/null | jq -er '.parent'
+}
+
+detect_spare_mmcblk() {
+    local main=$1 dev
+    for dev in /dev/mmcblk[0-9]; do
+        [[ -b $dev && $dev != "$main" ]] || continue
+        echo "$dev"
+        return 0
+    done
+    return 1
+}
+
+publish_links() {
+    local slot=$1 mmcblk=$2 part pn
+    ln -sfn "$mmcblk" "$SYMLINK_DIR/sd-$slot"
+    shopt -s nullglob
+    for part in "${mmcblk}"p*; do
+        [[ -b $part ]] || continue
+        pn=${part##*p}
+        ln -sfn "$part" "$SYMLINK_DIR/sd-$slot-p$pn"
+    done
+    shopt -u nullglob
+}
+
+routing_file="$SYSFS_PATH/sd/sd_main_routing"
+[[ -r $routing_file ]] || die "missing $routing_file - Strato Pi sysfs not present?"
+
+routing=$(tr -d '[:space:]' < "$routing_file")
+case "$routing" in
+    A) main_slot=a; spare_slot=b ;;
+    B) main_slot=b; spare_slot=a ;;
+    *) die "unexpected sd_main_routing value: '$routing'" ;;
+esac
+
+main_mmcblk=$(detect_main_mmcblk) || die "unable to determine main mmcblk device"
+
+mkdir -p "$SYMLINK_DIR"
+publish_links "$main_slot" "$main_mmcblk"
+
+if spare_mmcblk=$(detect_spare_mmcblk "$main_mmcblk"); then
+    publish_links "$spare_slot" "$spare_mmcblk"
+else
+    log "no spare SD card visible; only sd-$main_slot* published"
+fi

@@ -1,0 +1,10 @@
+[Unit]
+Description=Create normalized Strato Pi SD card device symlinks
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/root/create-normalized-devices
+
+[Install]
+WantedBy=multi-user.target
