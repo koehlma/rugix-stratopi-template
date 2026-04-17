@@ -1,0 +1,6 @@
+description = "configure and enable the Strato Pi MCU watchdog with periodic heartbeat"
+
+[parameters]
+enabled_config = { default = "1" }
+timeout_config = { default = "60" }
+down_delay_config = { default = "60" }

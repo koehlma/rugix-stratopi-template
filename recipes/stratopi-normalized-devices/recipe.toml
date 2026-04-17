@@ -1,0 +1,1 @@
+description = "create /dev/stratopi/sd{a,b} symlinks mapping SD card slots to block devices"

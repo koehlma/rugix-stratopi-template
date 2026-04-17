@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-SRC_DIR="/tmp/strato-pi-kernel-module"
+SRC_DIR="/tmp/strato-pi-max-kernel-module"
 
 BUILD_DEPS="build-essential device-tree-compiler"
 
@@ -14,7 +14,6 @@ for pkg in $BUILD_DEPS; do
     fi
 done
 
-# Install build dependencies.
 apt-get install -y $BUILD_DEPS
 
 # Build the kernel module for each installed kernel.
@@ -22,29 +21,43 @@ for KVER_DIR in /lib/modules/*/; do
     KVER=$(basename "$KVER_DIR")
     KDIR="/lib/modules/$KVER/build"
     [ -d "$KDIR" ] || continue
-    echo "Building stratopi.ko for kernel ${KVER}..."
+    echo "Building stratopimax.ko for kernel ${KVER}..."
     make -C "$KDIR" M="$SRC_DIR" modules
-    install -m 644 "$SRC_DIR/stratopi.ko" "/lib/modules/$KVER/"
+    install -m 644 "$SRC_DIR/stratopimax.ko" "/lib/modules/$KVER/"
     depmod -a "$KVER"
     make -C "$KDIR" M="$SRC_DIR" clean
 done
 
-# Compile and install the device tree overlay.
-mkdir -p /boot/firmware/overlays
+BOOT_DIR="${RUGIX_LAYER_DIR}/roots/boot"
+
+# Compile and install the device tree overlay for the selected variant.
+DTS_FILE="$SRC_DIR/stratopimax-${RECIPE_PARAM_VARIANT}.dts"
+if [ ! -f "$DTS_FILE" ]; then
+    echo "ERROR: DTS file not found: $DTS_FILE" >&2
+    echo "Available variants:" >&2
+    ls "$SRC_DIR"/stratopimax-*.dts 2>/dev/null >&2 || echo "  (none)" >&2
+    exit 1
+fi
+mkdir -p "$BOOT_DIR/overlays"
 dtc -@ -Hepapr -I dts -O dtb \
-    -o /boot/firmware/overlays/stratopi.dtbo \
-    "$SRC_DIR/stratopi.dts"
+    -o "$BOOT_DIR/overlays/stratopimax.dtbo" \
+    "$DTS_FILE"
+
+# Enable the device tree overlay on the boot partition.
+CONFIG="$BOOT_DIR/config.txt"
+if [ ! -f "$CONFIG" ]; then
+    echo "ERROR: config.txt not found at $CONFIG" >&2
+    exit 1
+fi
+if ! grep -q "^dtoverlay=stratopimax$" "$CONFIG"; then
+    echo "dtoverlay=stratopimax" >> "$CONFIG"
+fi
 
 # Install udev rules.
-install -m 644 "$SRC_DIR/99-stratopi.rules" /etc/udev/rules.d/
+install -m 644 "$SRC_DIR/99-stratopimax.rules" /etc/udev/rules.d/
 
 # Auto-load the module at boot.
-echo "stratopi" > /etc/modules-load.d/stratopi.conf
-
-# Enable the device tree overlay.
-if [ -f /boot/firmware/config.txt ]; then
-    echo "dtoverlay=stratopi" >> /boot/firmware/config.txt
-fi
+echo "stratopimax" > /etc/modules-load.d/stratopimax.conf
 
 # Clean up: only remove build dependencies that were not already installed.
 rm -rf "$SRC_DIR"
@@ -65,5 +78,3 @@ if [ ${#TO_REMOVE[@]} -gt 0 ]; then
     apt-get purge -y "${TO_REMOVE[@]}"
     apt-get autoremove -y --purge
 fi
-apt-get clean
-rm -rf /var/lib/apt/lists/*

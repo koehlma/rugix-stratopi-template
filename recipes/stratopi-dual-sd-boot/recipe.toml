@@ -1,0 +1,2 @@
+description = "Rugix A/B boot flow using the Strato Pi dual SD card switching matrix"
+dependencies = ["stratopi-normalized-devices"]

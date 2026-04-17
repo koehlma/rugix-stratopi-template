@@ -5,13 +5,15 @@
 set -euo pipefail
 
 SYSFS_PATH="/sys/class/stratopimax"
-SYMLINK_DIR="/dev/strato"
+SYMLINK_DIR="/dev/stratopi"
 
 log() { printf '[strato-normalize] %s\n' "$*" >&2; }
 die() { log "ERROR: $*"; exit 1; }
 
 detect_main_mmcblk() {
-    rugix-ctrl utils find-block-device / 2>/dev/null | jq -er '.parent'
+    local path=/
+    [[ -d /run/rugix/mounts/system ]] && path=/run/rugix/mounts/system
+    rugix-ctrl utils find-block-device "$path" 2>/dev/null | jq -er '.parent'
 }
 
 detect_spare_mmcblk() {
@@ -26,20 +28,32 @@ detect_spare_mmcblk() {
 
 publish_links() {
     local slot=$1 mmcblk=$2 part pn
-    ln -sfn "$mmcblk" "$SYMLINK_DIR/sd-$slot"
+    ln -sfn "$mmcblk" "$SYMLINK_DIR/sd${slot}"
     shopt -s nullglob
     for part in "${mmcblk}"p*; do
         [[ -b $part ]] || continue
         pn=${part##*p}
-        ln -sfn "$part" "$SYMLINK_DIR/sd-$slot-p$pn"
+        ln -sfn "$part" "$SYMLINK_DIR/sd${slot}${pn}"
     done
     shopt -u nullglob
 }
 
-routing_file="$SYSFS_PATH/sd/sd_main_routing"
-[[ -r $routing_file ]] || die "missing $routing_file - Strato Pi sysfs not present?"
+SD_SYSFS="$SYSFS_PATH/sd"
+[[ -d $SD_SYSFS ]] || die "missing $SD_SYSFS - Strato Pi sysfs not present?"
 
-routing=$(tr -d '[:space:]' < "$routing_file")
+# Ensure both SD interfaces are enabled (runtime + persistent config).
+for iface in sd_main sd_sec; do
+    if [[ "$(tr -d '[:space:]' < "$SD_SYSFS/${iface}_enabled")" != "1" ]]; then
+        log "enabling $iface"
+        echo 1 > "$SD_SYSFS/${iface}_enabled"
+        sleep 1
+    fi
+    if [[ "$(tr -d '[:space:]' < "s")" != "1" ]]; then
+        echo 1 > "$SD_SYSFS/${iface}_enabled_config"
+    fi
+done
+
+routing=$(tr -d '[:space:]' < "$SD_SYSFS/sd_main_routing")
 case "$routing" in
     A) main_slot=a; spare_slot=b ;;
     B) main_slot=b; spare_slot=a ;;
@@ -48,11 +62,13 @@ esac
 
 main_mmcblk=$(detect_main_mmcblk) || die "unable to determine main mmcblk device"
 
+# Remove stale symlinks before (re-)publishing.
+rm -rf "$SYMLINK_DIR"
 mkdir -p "$SYMLINK_DIR"
 publish_links "$main_slot" "$main_mmcblk"
 
 if spare_mmcblk=$(detect_spare_mmcblk "$main_mmcblk"); then
     publish_links "$spare_slot" "$spare_mmcblk"
 else
-    log "no spare SD card visible; only sd-$main_slot* published"
+    log "no spare SD card visible; only sd${main_slot}* published"
 fi

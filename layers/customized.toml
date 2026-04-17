@@ -3,14 +3,26 @@ parent = "core/debian-trixie"
 recipes = [
     # Prepares the Raspberry Pi base image for usage with Rugix.
     "core/rpi-debian-setup",
-    # Sets a static hostname (see parameters below).
+    # Set a static hostname.
     "core/set-hostname",
-    # Persists the home directory of the root user.
+    # Persist `/root`.
     "core/persist-root-home",
-    # Configures SSH.
+    # Setup and enable SSH.
     "core/ssh",
-    # Builds and installs the Strato Pi kernel module and device tree overlay.
-    "stratopi-kernel-module",
+    # Setup the network.
+    "rugix-extra/debian-setup-network",
+    # Setup the time synchronization.
+    "rugix-extra/debian-setup-timesyncd",
+    # Enable discovery of the system in the local network.
+    "rugix-extra/avahi",
+    # Build and install the Strato Pi Max kernel module.
+    "stratopi-max-kernel-module",
+    # Configure and enable the Strato Pi MCU watchdog.
+    "stratopi-watchdog",
+    # Reboot helper via Strato Pi MCU power cycle.
+    "stratopi-power-cycle-reboot",
+    # Create /dev/stratopi/ device symlinks for SD card slots.
+    "stratopi-normalized-devices",
 ]
 
 [parameters."core/set-hostname"]
@@ -21,5 +33,5 @@ autoremove = true
 
 [parameters."core/ssh"]
 root_authorized_keys = """
-<INSERT YOUR PUBLIC SSH KEY HERE>
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH278KH3NlBdcPHk8XaTpZCG578JZ3WFjhifuic9FYJN koehlma@photon
 """

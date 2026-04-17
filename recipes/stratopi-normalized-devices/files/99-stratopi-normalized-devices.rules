@@ -1,0 +1,2 @@
+# Re-create /dev/strato/ symlinks whenever an SD card is added or removed.
+ACTION=="add|remove", SUBSYSTEM=="block", KERNEL=="mmcblk[0-9]*", RUN+="/bin/systemctl restart --no-block create-normalized-devices.service"

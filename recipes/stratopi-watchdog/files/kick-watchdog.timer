@@ -1,0 +1,11 @@
+[Unit]
+Description=Periodically kick the Strato Pi MCU watchdog
+
+[Timer]
+OnBootSec=5s
+OnUnitActiveSec=5s
+AccuracySec=1s
+Unit=kick-watchdog.service
+
+[Install]
+WantedBy=timers.target

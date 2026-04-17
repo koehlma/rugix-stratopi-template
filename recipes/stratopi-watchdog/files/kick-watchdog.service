@@ -1,0 +1,6 @@
+[Unit]
+Description=Kick the Strato Pi MCU watchdog
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'echo 1 > /sys/class/stratopimax/watchdog/heartbeat'

@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+# Configure the Strato Pi MCU watchdog at boot from environment variables
+# set by the systemd unit (sourced from /etc/stratopi-watchdog.conf).
+
+set -euo pipefail
+
+if [[ "${WATCHDOG_DOWN_DELAY_CONFIG}" -lt 60 ]]; then
+    echo "ERROR: down_delay_config must be at least 60s to avoid bricking the board" >&2
+    exit 1
+fi
+
+SYSFS="/sys/class/stratopimax/watchdog"
+
+# Persistent MCU settings (survive power cycles, applied at next power-up).
+echo "${WATCHDOG_ENABLED_CONFIG}" > "$SYSFS/enabled_config"
+echo "${WATCHDOG_TIMEOUT_CONFIG}" > "$SYSFS/timeout_config"
+echo "${WATCHDOG_DOWN_DELAY_CONFIG}" > "$SYSFS/down_delay_config"
+
+# Apply runtime values so the configuration takes effect immediately.
+echo "${WATCHDOG_TIMEOUT_CONFIG}" > "$SYSFS/timeout"
+echo 1 > "$SYSFS/enabled"

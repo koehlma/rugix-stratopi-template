@@ -1,0 +1,11 @@
+[Unit]
+Description=Configure the Strato Pi MCU watchdog
+After=systemd-modules-load.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/stratopi-watchdog.conf
+ExecStart=/usr/lib/stratopi/configure-watchdog
+
+[Install]
+WantedBy=multi-user.target

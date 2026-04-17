@@ -2,7 +2,7 @@
 #
 # Each boot group corresponds to one physical SD card slot of the Strato Pi
 # matrix. The slot devices reference the symlinks published by
-# `create-normalized-devices`, which map sd-a/sd-b to whichever mmcblk the
+# `create-normalized-devices`, which map sda/sdb to whichever mmcblk the
 # kernel currently has them on.
 
 [config-partition]
@@ -10,19 +10,19 @@ partition = 1
 
 [slots.boot-a]
 type = "block"
-device = "/dev/strato/sd-a-p1"
+device = "/dev/stratopi/sda1"
 
 [slots.system-a]
 type = "block"
-device = "/dev/strato/sd-a-p2"
+device = "/dev/stratopi/sda2"
 
 [slots.boot-b]
 type = "block"
-device = "/dev/strato/sd-b-p1"
+device = "/dev/stratopi/sdb1"
 
 [slots.system-b]
 type = "block"
-device = "/dev/strato/sd-b-p2"
+device = "/dev/stratopi/sdb2"
 
 [boot-groups.a]
 slots = { boot = "boot-a", system = "system-a" }
@@ -32,7 +32,7 @@ slots = { boot = "boot-b", system = "system-b" }
 
 # The Strato Pi MCU controls which physical SD is routed to the CM via its
 # switching matrix; the boot flow controller talks to /sys/class/stratopimax
-# to drive it. The controller script does not exist yet — placeholder.
+# to drive it.
 [boot-flow]
 type = "custom"
-controller = "/usr/lib/rugix-strato/boot-flow"
+controller = "/usr/lib/stratopi/boot-flow"
