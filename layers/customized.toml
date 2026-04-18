@@ -17,6 +17,8 @@ recipes = [
     "rugix-extra/avahi",
     # Build and install the Strato Pi Max kernel module.
     "stratopi-max-kernel-module",
+    # Build and install the PCF2131 RTC driver.
+    "stratopi-rtc",
     # Configure and enable the Strato Pi MCU watchdog.
     "stratopi-watchdog",
     # Reboot helper via Strato Pi MCU power cycle.
