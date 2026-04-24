@@ -25,6 +25,16 @@ recipes = [
     "stratopi-power-cycle-reboot",
     # Create /dev/stratopi/ device symlinks for SD card slots.
     "stratopi-normalized-devices",
+    # Setup Nexigon Agent for Raspberry Pi.
+    "nexigon/nexigon-agent-rpi",
+    # Setup Nexigon Agent.
+    "nexigon/nexigon-agent",
+    # Configure Nexigon Agent.
+    "nexigon/nexigon-agent-config",
+    # Power management commands.
+    "nexigon/nexigon-power",
+    # Systemd service management commands.
+    "nexigon/nexigon-systemd",
 ]
 
 [parameters."core/set-hostname"]
@@ -36,4 +46,17 @@ autoremove = true
 [parameters."core/ssh"]
 root_authorized_keys = """
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH278KH3NlBdcPHk8XaTpZCG578JZ3WFjhifuic9FYJN koehlma@photon
+"""
+
+[parameters."nexigon/nexigon-agent"]
+version = "v0.5"
+
+[parameters."nexigon/nexigon-agent-config"]
+extra_config = """
+[commands]
+enabled = true
+
+[terminal]
+enabled = true
+user = "root"
 """
