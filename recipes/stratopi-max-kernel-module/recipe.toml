@@ -1,5 +1,4 @@
-description = "build and install the Strato Pi Max kernel module and device tree overlay"
+description = "build and install the Strato Pi Max kernel module and device tree overlays"
 
 [parameters]
 repo = { default = "https://github.com/sfera-labs/strato-pi-max-kernel-module.git" }
-variant = { default = "cm4" }

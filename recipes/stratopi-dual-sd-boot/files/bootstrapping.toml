@@ -1,0 +1,18 @@
+# Rugix bootstrapping configuration for the Strato Pi dual SD card system.
+
+[layout]
+type = "mbr"
+
+[[layout.partitions]]
+name = "boot"
+type = "0c"
+
+[[layout.partitions]]
+name = "system"
+size = "@SYSTEM_SIZE@"
+type = "83"
+
+[[layout.partitions]]
+name = "data"
+type = "83"
+filesystem = { type = "ext4", label = "data" }

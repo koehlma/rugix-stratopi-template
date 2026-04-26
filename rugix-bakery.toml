@@ -20,3 +20,8 @@ target = "rpi-tryboot"
 layer = "customized-pi4"
 architecture = "arm64"
 target = "rpi-tryboot"
+
+[systems.stratopi-dual-sd]
+layer = "customized-dual-sd"
+architecture = "arm64"
+target = "bsp"

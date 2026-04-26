@@ -20,7 +20,9 @@ recipes = [
     # Build and install the PCF2131 RTC driver.
     "stratopi-rtc",
     # Configure and enable the Strato Pi MCU watchdog.
-    "stratopi-watchdog",
+    #
+    # Temporarily disabled due to issues with prototype board.
+    #"stratopi-watchdog",
     # Reboot helper via Strato Pi MCU power cycle.
     "stratopi-power-cycle-reboot",
     # Create /dev/stratopi/ device symlinks for SD card slots.
@@ -60,3 +62,9 @@ enabled = true
 enabled = true
 user = "root"
 """
+
+# Use the experimental container-bundled Rugix Ctrl binaries instead of the
+# latest GitHub release. The bsp target and a few other init/bootstrap bits
+# the dual-SD setup depends on are only available there.
+[parameters."core/rugix-ctrl"]
+version = "container"

@@ -48,7 +48,7 @@ for iface in sd_main sd_sec; do
         echo 1 > "$SD_SYSFS/${iface}_enabled"
         sleep 1
     fi
-    if [[ "$(tr -d '[:space:]' < "s")" != "1" ]]; then
+    if [[ "$(tr -d '[:space:]' < "$SD_SYSFS/${iface}_enabled_config")" != "1" ]]; then
         echo 1 > "$SD_SYSFS/${iface}_enabled_config"
     fi
 done

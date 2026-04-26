@@ -1,28 +1,43 @@
-# Rugix system configuration for Strato Pi A/B SD card switching.
+# Rugix system configuration for the Strato Pi dual SD card system.
 #
-# Each boot group corresponds to one physical SD card slot of the Strato Pi
-# matrix. The slot devices reference the symlinks published by
-# `create-normalized-devices`, which map sda/sdb to whichever mmcblk the
-# kernel currently has them on.
+# Each SD card carries the same per-card layout:
+#
+#   p1: boot + Rugix config partition (FAT)
+#   p2: system rootfs (ext4)
+#   p3: data partition (ext4, created on first boot by Rugix bootstrapping)
+#
+# Slot devices reference the symlinks published by `create-normalized-devices`,
+# which map sda/sdb to whichever mmcblk* the kernel currently has the routed
+# (sda) and spare (sdb) cards on.
+#
+# Slots are marked as optional such that everything keeps working even if one
+# of the SD cards is not present.
 
 [config-partition]
 partition = 1
 
+[data-partition]
+partition = 3
+
 [slots.boot-a]
 type = "block"
 device = "/dev/stratopi/sda1"
+optional = true
 
 [slots.system-a]
 type = "block"
 device = "/dev/stratopi/sda2"
+optional = true
 
 [slots.boot-b]
 type = "block"
 device = "/dev/stratopi/sdb1"
+optional = true
 
 [slots.system-b]
 type = "block"
 device = "/dev/stratopi/sdb2"
+optional = true
 
 [boot-groups.a]
 slots = { boot = "boot-a", system = "system-a" }
@@ -30,9 +45,6 @@ slots = { boot = "boot-a", system = "system-a" }
 [boot-groups.b]
 slots = { boot = "boot-b", system = "system-b" }
 
-# The Strato Pi MCU controls which physical SD is routed to the CM via its
-# switching matrix; the boot flow controller talks to /sys/class/stratopimax
-# to drive it.
 [boot-flow]
 type = "custom"
 controller = "/usr/lib/stratopi/boot-flow"

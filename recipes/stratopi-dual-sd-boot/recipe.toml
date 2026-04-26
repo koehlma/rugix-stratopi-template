@@ -1,2 +1,9 @@
 description = "Rugix A/B boot flow using the Strato Pi dual SD card switching matrix"
 dependencies = ["stratopi-normalized-devices"]
+
+[parameters]
+# Target size of the system partition. The shipped image leaves the
+# partition unsized (so it shrink-wraps to the rootfs); bootstrap grows
+# it to this size on first boot, then adds the data partition behind it
+# in whatever space remains on the physical SD card.
+system_size = { default = "4GiB" }

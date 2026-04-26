@@ -1,0 +1,17 @@
+# BSP image layout for the Strato Pi dual SD card system.
+
+[image.layout]
+type = "mbr"
+
+[[image.layout.partitions]]
+name = "boot"
+size = "256MiB"
+type = "0c"
+filesystem = { type = "fat32" }
+root = "boot"
+
+[[image.layout.partitions]]
+name = "system"
+type = "83"
+filesystem = { type = "ext4" }
+root = "system"

@@ -29,30 +29,36 @@ for KVER_DIR in /lib/modules/*/; do
 done
 
 BOOT_DIR="${RUGIX_LAYER_DIR}/roots/boot"
-
-# Compile and install the device tree overlay for the selected variant.
-DTS_FILE="$SRC_DIR/stratopimax-${RECIPE_PARAM_VARIANT}.dts"
-if [ ! -f "$DTS_FILE" ]; then
-    echo "ERROR: DTS file not found: $DTS_FILE" >&2
-    echo "Available variants:" >&2
-    ls "$SRC_DIR"/stratopimax-*.dts 2>/dev/null >&2 || echo "  (none)" >&2
-    exit 1
-fi
 mkdir -p "$BOOT_DIR/overlays"
-dtc -@ -Hepapr -I dts -O dtb \
-    -o "$BOOT_DIR/overlays/stratopimax.dtbo" \
-    "$DTS_FILE"
 
-# Enable the device tree overlay on the boot partition.
+# Compile and install both CM4 and CM5 device tree overlays. config.txt
+# selects between them at boot via the [cm4]/[cm5] filter sections, so the
+# same image works on both modules without picking a variant at build time.
+for VARIANT in cm4 cm5; do
+    DTS_FILE="$SRC_DIR/stratopimax-${VARIANT}.dts"
+    if [ ! -f "$DTS_FILE" ]; then
+        echo "ERROR: DTS file not found: $DTS_FILE" >&2
+        echo "Available variants:" >&2
+        ls "$SRC_DIR"/stratopimax-*.dts 2>/dev/null >&2 || echo "  (none)" >&2
+        exit 1
+    fi
+    dtc -@ -Hepapr -I dts -O dtb \
+        -o "$BOOT_DIR/overlays/stratopimax-${VARIANT}.dtbo" \
+        "$DTS_FILE"
+done
+
+# Enable the matching device tree overlay on the boot partition. Pi config
+# filters scope subsequent directives to the named module; `[all]` resets
+# back to apply-to-everything for any later additions.
 CONFIG="$BOOT_DIR/config.txt"
 if [ ! -f "$CONFIG" ]; then
     echo "ERROR: config.txt not found at $CONFIG" >&2
     exit 1
 fi
 if ! grep -q "^dtoverlay=stratopimax$" "$CONFIG"; then
-    echo "dtoverlay=stratopimax" >> "$CONFIG"
     cat >> "$CONFIG" <<EOF
 [cm4]
+dtoverlay=stratopimax-cm4
 # Enable host mode on the 2711 built-in XHCI USB controller. This line
 # should be removed if the legacy DWC2 controller is required (e.g. for
 # USB device mode) or if USB support is not required.
@@ -60,6 +66,9 @@ otg_mode=1
 
 [cm5]
 dtoverlay=dwc2,dr_mode=host
+dtoverlay=stratopimax-cm5
+
+[all]
 EOF
 fi
 

@@ -1,0 +1,13 @@
+#!/bin/bash
+#
+# Rugix `boot/pre-init` hook for the Strato Pi dual SD setup.
+#
+# Rugix init resolves slot devices in System::initialize *before* systemd
+# starts, so the systemd-managed `create-normalized-devices.service` hasn't
+# run yet. Without /dev/stratopi/sda* and /dev/stratopi/sdb*, the slot
+# resolution fails during initalization.
+
+set -euo pipefail
+
+modprobe stratopimax
+exec /usr/lib/stratopi/create-normalized-devices
