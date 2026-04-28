@@ -2,12 +2,24 @@
 #
 # Rugix `boot/pre-init` hook for the Strato Pi dual SD setup.
 #
-# Rugix init resolves slot devices in System::initialize *before* systemd
-# starts, so the systemd-managed `create-normalized-devices.service` hasn't
-# run yet. Without /dev/stratopi/sda* and /dev/stratopi/sdb*, the slot
-# resolution fails during initalization.
+# We need the `stratopimax` to determine the currently booted system.
 
 set -euo pipefail
+
+# Initialize and wait for the I2C bus. Not doing this here will result in
+# an error "RP probing failed" of the stratopimax Kernel module. Normally,
+# udev would take care of initializing the bus, but we don't have udev this
+# early in the boot sequence.
+for mod in i2c-bcm2835 i2c-rp1; do
+    modprobe "$mod" 2>/dev/null || true
+done
+
+for _ in $(seq 1 100); do
+    for p in /sys/bus/i2c/devices/*-0035; do
+        [ -e "$p" ] && break 2
+    done
+    sleep 0.05
+done
 
 modprobe stratopimax
 exec /usr/lib/stratopi/create-normalized-devices

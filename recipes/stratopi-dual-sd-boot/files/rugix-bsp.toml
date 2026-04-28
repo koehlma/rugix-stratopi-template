@@ -15,3 +15,11 @@ name = "system"
 type = "83"
 filesystem = { type = "ext4" }
 root = "system"
+
+[[bundle.payloads]]
+slot = "boot"
+partition = 1
+
+[[bundle.payloads]]
+slot = "system"
+partition = 2
