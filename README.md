@@ -225,10 +225,10 @@ Depends on `stratopi-max-normalized-devices`.
 ## Building
 
 ```
-RUGIX_VERSION=branch-main ./run-bakery bake <system>
+RUGIX_VERSION=branch-main ./run-bakery bake bundle <system>
 ```
 
-The built image will be in `build/`.
+The built image and update bundle will be in `build/`.
 
 If you uncomment any of the optional `nexigon/*` recipes in
 `layers/customized.toml`, copy `env.template` to `.env` first and fill in the
