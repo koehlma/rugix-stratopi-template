@@ -18,25 +18,28 @@ recipes = [
     # Build and install the Strato Pi Max kernel module.
     "stratopi-max-kernel-module",
     # Build and install the PCF2131 RTC driver.
-    "stratopi-rtc",
+    "stratopi-rtc-pcf2131",
     # Configure and enable the Strato Pi MCU watchdog.
-    #
-    # Temporarily disabled due to issues with prototype board.
-    #"stratopi-watchdog",
+    "stratopi-max-watchdog",
     # Reboot helper via Strato Pi MCU power cycle.
-    "stratopi-power-cycle-reboot",
+    "stratopi-max-power-cycle-reboot",
     # Create /dev/stratopi/ device symlinks for SD card slots.
-    "stratopi-normalized-devices",
+    "stratopi-max-normalized-devices",
+
+    ## Enable the following recipes for the nexigon integration.
+    ##
+    ## Requires configuration through .env.
+
     # Setup Nexigon Agent for Raspberry Pi.
-    "nexigon/nexigon-agent-rpi",
+    # "nexigon/nexigon-agent-rpi",
     # Setup Nexigon Agent.
-    "nexigon/nexigon-agent",
+    # "nexigon/nexigon-agent",
     # Configure Nexigon Agent.
-    "nexigon/nexigon-agent-config",
+    # "nexigon/nexigon-agent-config",
     # Power management commands.
-    "nexigon/nexigon-power",
+    # "nexigon/nexigon-power",
     # Systemd service management commands.
-    "nexigon/nexigon-systemd",
+    # "nexigon/nexigon-systemd",
 ]
 
 [parameters."core/set-hostname"]
@@ -46,6 +49,7 @@ hostname = "rugix-stratopi"
 autoremove = true
 
 [parameters."core/ssh"]
+# Replace with your own SSH key.
 root_authorized_keys = """
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH278KH3NlBdcPHk8XaTpZCG578JZ3WFjhifuic9FYJN koehlma@photon
 """

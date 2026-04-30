@@ -2,11 +2,6 @@
 
 set -euo pipefail
 
-if [[ "${RECIPE_PARAM_DOWN_DELAY_CONFIG}" -lt 60 ]]; then
-    echo "ERROR: down_delay_config must be at least 60s to avoid bricking the board" >&2
-    exit 1
-fi
-
 mkdir -p /usr/lib/stratopi
 install -m 755 "${RECIPE_DIR}/files/configure-watchdog" /usr/lib/stratopi/
 

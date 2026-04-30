@@ -3,5 +3,5 @@ parent = "customized"
 recipes = [
     # Custom boot flow that drives A/B updates across the two SD card slots
     # via the Strato Pi MCU switching matrix.
-    "stratopi-dual-sd-boot",
+    "stratopi-max-dual-sd-boot",
 ]

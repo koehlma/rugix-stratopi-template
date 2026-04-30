@@ -21,6 +21,7 @@ layer = "customized-pi4"
 architecture = "arm64"
 target = "rpi-tryboot"
 
+# Strato Pi with dual SD card switching matrix.
 [systems.stratopi-dual-sd]
 layer = "customized-dual-sd"
 architecture = "arm64"

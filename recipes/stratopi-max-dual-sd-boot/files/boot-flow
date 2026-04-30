@@ -21,6 +21,7 @@ SYSFS_BASE="/sys/class/stratopimax"
 SD_MAIN_ROUTING="$SYSFS_BASE/sd/sd_main_routing"
 SD_MAIN_ROUTING_CONFIG="$SYSFS_BASE/sd/sd_main_routing_config"
 WATCHDOG_SD_SWITCH="$SYSFS_BASE/watchdog/sd_switch_config"
+POWER_SD_SWITCH="$SYSFS_BASE/power/sd_switch_config"
 POWER_DOWN_ENABLED="$SYSFS_BASE/power/down_enabled"
 
 # Value to write to watchdog/sd_switch_config on commit. 0 disables watchdog-
@@ -103,11 +104,12 @@ case "$cmd" in
         ;;
 
     pre_install)
-        # During the spare-image write, prevent watchdog-driven SD swaps so
-        # a hang cannot leave us booting from a half-written card. Snapshot
-        # the previous value so post_install can restore production state
-        # if no set_try_next follows.
+        # Lock down MCU-driven SD swaps for the duration of the update window:
+        # neither a hang during the spare-image write (watchdog) nor an
+        # unrelated power blip (power-cycle) may flip the routing. The only
+        # legitimate routing change is the explicit set_try_next write below.
         printf '0\n' > "$WATCHDOG_SD_SWITCH"
+        printf '0\n' > "$POWER_SD_SWITCH"
         printf '{}\n'
         ;;
 

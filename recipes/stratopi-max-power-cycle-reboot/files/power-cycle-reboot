@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+#
+# Reboot by shutting down and power cycling through the Strato Pi MCU.
+
+set -euo pipefail
+
+SYSFS_BASE="/sys/class/stratopimax"
+
+POWER_SD_SWITCH="$SYSFS_BASE/power/sd_switch_config"
+POWER_DOWN_ENABLED="$SYSFS_BASE/power/down_enabled"
+
+sync
+printf '0\n' > "$POWER_SD_SWITCH"
+printf '1\n' > "$POWER_DOWN_ENABLED"
+shutdown now
