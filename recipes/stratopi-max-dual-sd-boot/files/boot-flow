@@ -20,6 +20,7 @@ SYSFS_BASE="/sys/class/stratopimax"
 
 SD_MAIN_ROUTING="$SYSFS_BASE/sd/sd_main_routing"
 SD_MAIN_ROUTING_CONFIG="$SYSFS_BASE/sd/sd_main_routing_config"
+WATCHDOG_ENABLED="$SYSFS_BASE/watchdog/enabled"
 WATCHDOG_SD_SWITCH="$SYSFS_BASE/watchdog/sd_switch_config"
 POWER_SD_SWITCH="$SYSFS_BASE/power/sd_switch_config"
 POWER_DOWN_ENABLED="$SYSFS_BASE/power/down_enabled"
@@ -124,6 +125,13 @@ case "$cmd" in
         # sd_main_routing_config to the matrix, then powers the CM back on.
         # The script returns immediately; the actual reboot happens after
         # the configured delay.
+        #
+        # The application is expected to keep the watchdog running across
+        # the update window, but we re-assert it here so that the rollback
+        # safety net is guaranteed armed before we cut power: if the new
+        # system fails to come up and resume heartbeats, the MCU will roll
+        # back via watchdog/sd_switch_config (set to 1 in set_try_next).
+        printf '1\n' > "$WATCHDOG_ENABLED"
         sync
         printf '1\n' > "$POWER_DOWN_ENABLED"
         shutdown now
