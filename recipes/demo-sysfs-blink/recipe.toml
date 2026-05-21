@@ -1,0 +1,5 @@
+description = "blink the Strato Pi green LED via a sysfs-driven systemd template service"
+
+[parameters]
+# Interval in milliseconds used for the auto-enabled blink instance.
+interval_ms = { default = "500" }

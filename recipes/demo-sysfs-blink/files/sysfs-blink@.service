@@ -1,0 +1,12 @@
+[Unit]
+Description=Sysfs LED blinker (%i ms interval)
+After=multi-user.target
+
+[Service]
+Type=simple
+Environment=INTERVAL_MS=%i
+ExecStart=/usr/local/bin/sysfs-blink.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

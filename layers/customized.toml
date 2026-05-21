@@ -15,6 +15,8 @@ recipes = [
     "demo-basic-tools",
     # Install Podman so rugix-bakery can run on-device.
     "demo-podman",
+    # Blink the front-panel green LED so updates are visible at a glance.
+    "demo-sysfs-blink",
     # Setup the network.
     "rugix-extra/debian-setup-network",
     # Setup the time synchronization.
