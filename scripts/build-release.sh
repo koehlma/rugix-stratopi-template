@@ -24,9 +24,9 @@ fi
 
 for system in "$@"; do
     echo "[INFO] building image for '$system' (version: $VERSION)"
-    ./run-bakery bake image "$system" --release-version "$VERSION"
+    ./run-bakery bake image "$system" --release-version "$VERSION" --enable-mixin nexigon
     echo "[INFO] building bundle for '$system' (version: $VERSION)"
-    ./run-bakery bake bundle "$system" --release-version "$VERSION"
+    ./run-bakery bake bundle "$system" --release-version "$VERSION" --enable-mixin nexigon
     IMG_PATH="build/$system/system.img"
     if [ -e "$IMG_PATH" ]; then
         echo "[INFO] compressing '$system' image"

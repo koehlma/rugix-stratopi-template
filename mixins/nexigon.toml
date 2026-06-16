@@ -1,0 +1,32 @@
+recipes = [
+    # Update package lists.
+    "core/pkg-update",
+    # Setup Nexigon Agent for Raspberry Pi.
+    "nexigon/nexigon-agent-rpi",
+    # Setup Nexigon Agent.
+    "nexigon/nexigon-agent",
+    # Configure Nexigon Agent.
+    "nexigon/nexigon-agent-config",
+    # Power management commands.
+    "nexigon/nexigon-power",
+    # Systemd service management commands.
+    "nexigon/nexigon-systemd",
+    # Nexigon Rugix OTA Service.
+    "nexigon/nexigon-rugix-ota",
+]
+
+[parameters."nexigon/nexigon-rugix-ota"]
+use_bundle_hash = true
+
+[parameters."nexigon/nexigon-agent"]
+version = "v0.5"
+
+[parameters."nexigon/nexigon-agent-config"]
+extra_config = """
+[commands]
+enabled = true
+
+[terminal]
+enabled = true
+user = "root"
+"""
