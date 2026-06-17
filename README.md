@@ -1,6 +1,14 @@
-# Rugix Example Integration for Strato Pi
+# Rugix Example Integration for Strato Pi Max
 
-This repository contains a Rugix example integration for the [Strato Pi Max](https://sferalabs.cc/strato-pi-max/) family of edge servers. It allows you to **build read-to-flash images with robust OTA update support**. In addition, it provides an optional ready-made integration with [Nexigon](https://nexigon.cloud) to manage and orchestrate your edge devices at scale.
+This repository is a Rugix example integration: a template you can adapt to
+build ready-to-flash system images for the
+[Strato Pi Max](https://sferalabs.cc/strato-pi-max/) family of edge servers.
+Rugix is a toolkit for building embedded Linux systems and updating them in the
+field. This integration provides **fault-tolerant A/B OTA update support**
+through Raspberry Pi's tryboot mechanism and Strato Pi Max's dual-SD failover for full
+boot-medium redundancy. It also ships with an optional ready-made
+[Nexigon](https://nexigon.cloud) integration for orchestrating fleet-wide OTA
+updates and remote device access.
 
 > [!NOTE]
 > **Support:** This repository is subject to [Tier 3: Example Integrations](https://rugix.org/support-commitment/#tier-example-integration) of our Support Commitment.
@@ -151,8 +159,8 @@ Available systems are:
 
 ## Nexigon Integration
 
-For fleet-wide update orchestration this template ships with a ready-made
-[Nexigon](https://nexigon.cloud) integration.
+For fleet-wide update orchestration and remote device access, this template
+ships with a ready-made [Nexigon](https://nexigon.cloud) integration.
 
 The Nexigon agent recipes in `layers/customized.toml` require configuration.
 Copy `env.template` to `.env` first and fill in the matching values. The
